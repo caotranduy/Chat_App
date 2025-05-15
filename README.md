@@ -1,2 +1,3 @@
-**Chat App**
-*Multi-platform chat application hoped to overthrow zalo
+# Chat App
+
+*Multi-platform chat application hoped to overthrow zalo*
