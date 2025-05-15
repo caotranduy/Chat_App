@@ -16,7 +16,7 @@ app.use(express.json());
 const rootDir = path.join(__dirname, '..'); // Đường dẫn đến thư mục chatapp
 
 // Để trỏ đến thư mục frontendWEB
-const frontendDir = path.join(rootDir, 'frontendWEB');
+const frontendDir = path.join(rootDir, 'frontendWeb');
 app.use(express.static(frontendDir));
 app.use('/css', express.static(path.join(frontendDir,'css')));
 app.use('/js', express.static(path.join(frontendDir,'js')));
