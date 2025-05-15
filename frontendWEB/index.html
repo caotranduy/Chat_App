@@ -1,32 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-lang="APP_TITLE">Ứng dụng Chat</title>
-    <link rel="stylesheet" href="./css/style.css">
-    <link rel="stylesheet" href="./css/auth.css">
-    <link rel="stylesheet" href="./css/navbar.css">
-</head>
-<body>
-    <nav class="navbar">
-        <div class="logo" data-lang="APP_TITLE">Chat App</div>
-        <ul class="nav-links">
-            <li><a href="/login" data-lang="LOGIN_TITLE">Đăng nhập</a></li>
-            <li><a href="/register" data-lang="REGISTER_TITLE">Đăng ký</a></li>
-            <li class="dropdown">
-                <label for="language-switcher" data-lang="LANGUAGE">Ngôn ngữ:</label>
-                <select id="language-switcher" onchange="changeLanguage(this.value)">
-                    <option value="en" selected>English</option>
-                    <option value="vi">Tiếng Việt</option>
-                </select>
-            </li>
-        </ul>
-    </nav>
-
-    <div id="content">
-        </div>
-
-    <script type="module" src="./js/app.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vite + React</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
