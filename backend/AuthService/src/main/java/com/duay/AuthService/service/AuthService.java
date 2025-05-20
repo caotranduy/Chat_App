@@ -1,39 +1,57 @@
 package com.duay.AuthService.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.duay.AuthService.dto.LoginRequest;
+import com.duay.AuthService.dto.AuthRequest;
+import com.duay.AuthService.dto.AuthResponse;
 import com.duay.AuthService.dto.RegisterRequest;
+import com.duay.AuthService.entity.Role;
 import com.duay.AuthService.entity.User;
 import com.duay.AuthService.repository.UserRepository;
-import com.duay.AuthService.security.JwtUtil;
+import com.duay.AuthService.security.JwtService;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
-    @Autowired UserRepository userRepo;
-    @Autowired PasswordEncoder passwordEncoder;
-    @Autowired JwtUtil jwtUtil;
+    private final UserRepository repository;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
 
-    public void register(RegisterRequest req) {
-        if (userRepo.findByUsername(req.username).isPresent()) {
-            throw new RuntimeException("Username already taken");
+    public AuthResponse register(RegisterRequest request) {
+        User user = User.builder()
+                .username(request.username())
+                .email(request.email())
+                .password(passwordEncoder.encode(request.password()))
+                .role(Role.USER)
+                .build();
+        
+        User savedUser = repository.save(user);
+        String jwtToken = jwtService.generateToken(savedUser);
+        return AuthResponse.builder()
+                .token(jwtToken)
+                .build();
         }
-        User user = new User();
-        user.setUsername(req.username);
-        user.setPassword(passwordEncoder.encode(req.password));
-        user.setDisplayName(req.displayName);
-        userRepo.save(user);
-    }
 
-    public String login(LoginRequest req) {
-        User user = userRepo.findByUsername(req.username)
-            .orElseThrow(() -> new RuntimeException("User not found"));
-        if (!passwordEncoder.matches(req.password, user.getPassword())) {
-            throw new RuntimeException("Invalid credentials");
+    public AuthResponse authenticate(AuthRequest request) {
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.email(),
+                        request.password()
+                )
+        );
+        User user = repository.findByEmail(request.email())
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+        String jwtToken = jwtService.generateToken(user);
+        return AuthResponse.builder()
+                .token(jwtToken)
+                .build();
         }
-        return jwtUtil.generateToken(user.getUsername());
-    }
 }
-

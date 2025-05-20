@@ -5,15 +5,15 @@ import java.util.Date;
 
 import org.springframework.stereotype.Component;
 
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.Claims;
 
 @Component
 public class JwtUtil {
     private final String SECRET = "secret-key";
 
-    @SuppressWarnings("deprecation")
+    // @SuppressWarnings("deprecation")
     public String generateToken(String username) {
         return Jwts.builder()
             .setSubject(username)

@@ -1,7 +1,6 @@
 package com.duay.AuthService.dto;
 
-public record RegisterRequest(
-    String username,
+public record AuthRequest( 
     String email,
     String password
 ) {}
