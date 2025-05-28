@@ -1,5 +1,6 @@
 package com.duay.AuthService.security;
 
+import java.io.IOException;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import com.duay.AuthService.entity.User;
 import com.duay.AuthService.repository.UserRepository;
 
-import io.jsonwebtoken.io.IOException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,7 +20,7 @@ import jakarta.servlet.http.HttpServletResponse;
 @Component
 public class JwtFilter extends OncePerRequestFilter {
 
-    @Autowired JwtUtil jwtUtil;
+    @Autowired JwtService jwtService;
     @Autowired UserRepository userRepo;
 
     @Override
@@ -29,7 +29,7 @@ public class JwtFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
-            String username = jwtUtil.extractUsername(token);
+            String username = jwtService.extractUsername(token);
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 User user = userRepo.findByUsername(username).orElse(null);
                 if (user != null) {

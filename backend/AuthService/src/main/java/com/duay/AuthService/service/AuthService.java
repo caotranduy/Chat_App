@@ -2,7 +2,7 @@ package com.duay.AuthService.service;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.core.AuthenticationException; // Import thêm AuthenticationException
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -36,22 +36,40 @@ public class AuthService {
         String jwtToken = jwtService.generateToken(savedUser);
         return AuthResponse.builder()
                 .token(jwtToken)
+                .authStatusCode(0) // Đăng ký thành công, trả về 0
                 .build();
-        }
+    }
 
     public AuthResponse authenticate(AuthRequest request) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.email(),
-                        request.password()
-                )
-        );
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.email(),
+                            request.password()
+                    )
+            );
+        } catch (AuthenticationException e) {
+            return AuthResponse.builder()
+                    .authStatusCode(-1) 
+                    .token(null) 
+                    .build();
+        }
+        
         User user = repository.findByEmail(request.email())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+                .orElse(null); 
 
+        if (user == null) {
+            return AuthResponse.builder()
+                    .authStatusCode(-2) 
+                    .token(null) 
+                    .build();
+        }
+
+        
         String jwtToken = jwtService.generateToken(user);
         return AuthResponse.builder()
                 .token(jwtToken)
+                .authStatusCode(0) 
                 .build();
-        }
+    }
 }
