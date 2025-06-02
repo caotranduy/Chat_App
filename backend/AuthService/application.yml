@@ -1,6 +1,0 @@
-# spring:
-#   datasource:
-#     url: ${DB_URL:jdbc:mysql://localhost:3306/auth_db}  # <- Kết nối đến MySQL
-#     username: ${DB_USERNAME:root}                      # <- Username database
-#     password: ${DB_PASSWORD:password}                  # <- Password database
-#     driver-class-name: com.mysql.cj.jdbc.Driver        # <- JDBC Driver cho MySQL
