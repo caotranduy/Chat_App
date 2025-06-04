@@ -31,8 +31,8 @@ public class User implements UserDetails {
     @Id // Đánh dấu khóa chính
     @GeneratedValue(strategy = GenerationType.IDENTITY) // Tự động tăng ID
     private Long id;
-
-    @Column(unique = true, nullable = false) // Đảm bảo username là duy nhất và không null
+    // Đảm bảo username là duy nhất và không null
+    @Column(unique = true, nullable = false) 
     private String username;
 
     @Column(nullable = false) // Mật khẩu không null
