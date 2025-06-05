@@ -1,4 +1,4 @@
-package com.duay.AuthService.model;
+package com.duay.AuthService.model.UserAuthInfo;
 
 import java.util.Collection;
 import java.util.List;
@@ -20,27 +20,33 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-@Data // Tự động tạo getters, setters, toString, equals, hashCode (Lombok)
-@Builder // Tự động tạo builder pattern (Lombok)
-@NoArgsConstructor // Tự động tạo constructor không đối số (Lombok)
-@AllArgsConstructor // Tự động tạo constructor với tất cả đối số (Lombok)
-@Entity // Đánh dấu đây là một JPA Entity
-@Table(name = "user_credential") // Đặt tên bảng trong cơ sở dữ liệu
+@Data 
+@Builder 
+@NoArgsConstructor 
+@AllArgsConstructor 
+@Entity 
+@Table(name = "user_credential") 
+/*
+ * User class implements UserDetails interface to provide user authentication and authorization information.
+ * It contains fields for user ID, username, password, email, and role.
+ */
 public class User implements UserDetails {
-
-    @Id // Đánh dấu khóa chính
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Tự động tăng ID
-    private Long id;
-    // Đảm bảo username là duy nhất và không null
+    
+    @Id 
+    @GeneratedValue(strategy = GenerationType.IDENTITY) 
+    private Long userId;
+    
     @Column(unique = true, nullable = false) 
     private String username;
 
-    @Column(nullable = false) // Mật khẩu không null
+    @Column(nullable = false) 
     private String password;
 
-    @Enumerated(EnumType.STRING) // Lưu trữ enum dưới dạng String trong DB
-    private Role role; // Sử dụng Role enum cho vai trò
+    @Column(unique = true, nullable = false) 
+    private String email;
 
+    @Enumerated(EnumType.STRING) 
+    private Role role; 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority(role.name()));
@@ -65,4 +71,5 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
 }

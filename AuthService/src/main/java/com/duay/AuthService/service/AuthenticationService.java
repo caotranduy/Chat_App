@@ -2,6 +2,7 @@ package com.duay.AuthService.service;
 
 import java.io.IOException;
 
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -11,9 +12,10 @@ import org.springframework.stereotype.Service;
 import com.duay.AuthService.dto.AuthenticationRequest;
 import com.duay.AuthService.dto.AuthenticationResponse;
 import com.duay.AuthService.dto.RegisterRequest;
-import com.duay.AuthService.model.Role;
-import com.duay.AuthService.model.User;
-import com.duay.AuthService.repository.UserRepository;
+import com.duay.AuthService.dto.RegisterResponse;
+import com.duay.AuthService.model.UserAuthInfo.Role;
+import com.duay.AuthService.model.UserAuthInfo.User;
+import com.duay.AuthService.repository.UserCredentialRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,40 +26,62 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class AuthenticationService {
 
-    private final UserRepository userRepository;
+    private final UserCredentialRepository userCredentialRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
 
     /*Đăng ký người dùng mới*/
-    public AuthenticationResponse register(RegisterRequest request) {
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username already taken!"); // Xử lý khi username đã tồn tại
+    public RegisterResponse register(RegisterRequest request) {
+
+        // 1. Kiểm tra xem username đã tồn tại chưa
+        if (userCredentialRepository.existsByUsername(request.getUsername())) {
+            return RegisterResponse.builder()
+                    .resultCode(RegisterResponse.ResultCode.USERNAME_EXISTS)
+                    .username(request.getUsername()) 
+                    .build();
+        }
+
+        if (userCredentialRepository.existsByEmail(request.getEmail())) {
+            return RegisterResponse.builder()
+                    .resultCode(RegisterResponse.ResultCode.EMAIL_EXISTS)
+                    .username(request.getUsername()) 
+                    .email(request.getEmail()) 
+                    .build();
         }
 
         var user = User.builder()
                 .username(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword())) // Mã hóa mật khẩu
-                .role(Role.USER) // Mặc định là ROLE_USER
+                .password(passwordEncoder.encode(request.getPassword())) 
+                .email(request.getEmail())
+                .role(Role.USER) // ROLE_USER by default
                 .build();
-        userRepository.save(user); // Lưu người dùng vào DB
-        var jwtToken = jwtService.generateToken(user); // Tạo JWT
-        var refreshToken = jwtService.generateRefreshToken(user); // Tạo Refresh Token
-        return AuthenticationResponse.builder()
-                .accessToken(jwtToken)
-                .refreshToken(refreshToken)
-                .build();
+
+        try {
+            User savedUser = userCredentialRepository.save(user);
+            
+            return RegisterResponse.builder()
+                    .resultCode(RegisterResponse.ResultCode.SUCCESS)
+                    .username(savedUser.getUsername()) 
+                    .build();
+        } catch (DataAccessException e) {
+            // Return an error response if there is a database error
+            return RegisterResponse.builder()
+                    .resultCode(RegisterResponse.ResultCode.ERROR) 
+                    .username(request.getUsername())
+                    .build();
+        }
     }
 
     // Đăng nhập người dùng
     public AuthenticationResponse authenticate(AuthenticationRequest request) {
-        authenticationManager.authenticate( // Xác thực người dùng bằng username và password
+        authenticationManager.authenticate( 
                 new UsernamePasswordAuthenticationToken(
                         request.getUsername(),
                         request.getPassword()
                 )
         );
-        var user = userRepository.findByUsername(request.getUsername())
+        var user = userCredentialRepository.findByUsername(request.getUsername())
                 .orElseThrow(); 
 
         var jwtToken = jwtService.generateToken(user); 
@@ -83,7 +107,7 @@ public class AuthenticationService {
 //         // BƯỚC 2: Tìm người dùng trong cơ sở dữ liệu sau khi xác thực thành công.
 //         // .orElseThrow() sẽ ném ra NoSuchElementException nếu không tìm thấy,
 //         // nhưng sau khi xác thực thành công thì thường là tìm thấy.
-//         var user = userRepository.findByUsername(request.getUsername())
+//         var user = userCredentialRepository.findByUsername(request.getUsername())
 //                 .orElseThrow(() -> new RuntimeException("User not found after authentication")); // Thêm thông báo rõ ràng hơn
 
 //         // BƯỚC 3: TẠM THỜI BYPASS VIỆC TẠO VÀ TRẢ VỀ JWT
@@ -117,7 +141,7 @@ public class AuthenticationService {
         refreshToken = authHeader.substring(7);
         username = jwtService.extractUsername(refreshToken);
         if (username != null) {
-            var user = this.userRepository.findByUsername(username)
+            var user = this.userCredentialRepository.findByUsername(username)
                     .orElseThrow();
             if (jwtService.isTokenValid(refreshToken, user)) { // Kiểm tra Refresh Token có hợp lệ không
                 var accessToken = jwtService.generateToken(user); // Tạo Access Token mới
@@ -128,5 +152,11 @@ public class AuthenticationService {
                 new ObjectMapper().writeValue(response.getOutputStream(), authResponse); // Ghi response
             }
         }
+    }
+
+    public void deleteUser(String username) {
+        var user = userCredentialRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        userCredentialRepository.delete(user); // Xóa người dùng khỏi DB
     }
 }
