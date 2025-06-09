@@ -33,6 +33,7 @@ import lombok.NoArgsConstructor;
 public class User implements UserDetails {
     
     @Id 
+    @Column(name = "user_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY) 
     private Long userId;
     
@@ -71,5 +72,7 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
+    public Long getId() { return this.userId; }
 
 }

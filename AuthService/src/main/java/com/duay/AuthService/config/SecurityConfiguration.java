@@ -30,7 +30,7 @@ public class SecurityConfiguration {
 
             // Configure endpoint authorization
             .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/login", "/auth/register", "/auth/refresh-token")
+                        .requestMatchers("/public/**")
                         .permitAll()
                         .anyRequest()
                         .authenticated()

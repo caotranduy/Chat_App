@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import com.duay.AuthService.model.UserAuthInfo.User;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -45,7 +47,12 @@ public class JwtService {
 
     // Tạo JWT
     public String generateToken(UserDetails userDetails) {
-        return generateToken(new HashMap<>(), userDetails);
+        Map<String, Object> extraClaims = new HashMap<>();
+        if (userDetails instanceof User appUser) { // Kiểm tra xem có phải là instance của lớp User model của bạn không
+                        extraClaims.put("userId", appUser.getUserId()); // Gọi trực tiếp phương thức getUserId()
+
+        }
+        return buildToken(extraClaims, userDetails, jwtExpiration); // Đã sửa: gọi buildToken thay vì gọi đệ quy generateToken
     }
 
     // Tạo JWT với các claim bổ sung

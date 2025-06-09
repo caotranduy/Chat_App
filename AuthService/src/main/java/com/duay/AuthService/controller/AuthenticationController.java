@@ -19,7 +19,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("public/auth") //public endpoint, can be accessed without authentication
 @RequiredArgsConstructor
 public class AuthenticationController {
 

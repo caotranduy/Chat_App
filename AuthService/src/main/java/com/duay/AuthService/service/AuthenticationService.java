@@ -27,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 public class AuthenticationService {
 
     private final UserCredentialRepository userCredentialRepository;
+    private final UserProfileService userProfileService; 
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
@@ -59,13 +60,17 @@ public class AuthenticationService {
 
         try {
             User savedUser = userCredentialRepository.save(user);
-            
+            try {
+                userProfileService.initializeUserProfile(savedUser.getId()); //Initialize user profile after saving user
+            } catch (Exception e) {
+                System.err.println("Error when initializing user profile: " + e.getMessage());
+            }
             return RegisterResponse.builder()
                     .resultCode(RegisterResponse.ResultCode.SUCCESS)
                     .username(savedUser.getUsername()) 
                     .build();
         } catch (DataAccessException e) {
-            // Return an error response if there is a database error
+            System.err.println("Error when saving user: " + e.getMessage());
             return RegisterResponse.builder()
                     .resultCode(RegisterResponse.ResultCode.ERROR) 
                     .username(request.getUsername())
