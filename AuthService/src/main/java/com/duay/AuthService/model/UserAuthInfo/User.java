@@ -53,6 +53,12 @@ public class User implements UserDetails {
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
+    // @Column(nullable = false, unique = true)
+    // private String token;
+
+    // @Column(nullable = false)
+    // private Instant expiryDate;
+
     @Override
     public boolean isAccountNonExpired() {
         return true;

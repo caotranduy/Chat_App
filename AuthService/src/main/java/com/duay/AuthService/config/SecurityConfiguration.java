@@ -3,6 +3,7 @@ package com.duay.AuthService.config; // Cập nhật package name
 import org.springframework.context.annotation.Bean; // Cập nhật import
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -26,7 +27,8 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable())
+            .cors(Customizer.withDefaults()) 
+            .csrf(csrf -> csrf.disable())
 
             // Configure endpoint authorization
             .authorizeHttpRequests(auth -> auth

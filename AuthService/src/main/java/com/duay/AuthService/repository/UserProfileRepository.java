@@ -1,5 +1,6 @@
 package com.duay.AuthService.repository;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -7,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import com.duay.AuthService.model.UserAuthInfo.User;
 import com.duay.AuthService.model.UserProfile.UserProfile;
 
 @Repository 
@@ -18,7 +20,7 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
      */
     @Query("SELECT p FROM UserProfile p JOIN p.user u WHERE u.username = :username")
     Optional<UserProfile> findByUserUsername(@Param("username") String username);
-
+    
     /**
      * Find UserProfile by userId
      * @param userId of the User
@@ -27,5 +29,9 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
     Optional<UserProfile> findByUserUserId(Long userId);
 
     Optional<UserProfile> findByDisplayName(String displayName); 
-    
+
+    Optional<UserProfile> findByUser(User user);
+
+    @Query("SELECT p FROM UserProfile p WHERE p.user.username LIKE %:keyword%")
+    List<UserProfile> searchByUserUsernameContaining(@Param("keyword") String keyword);  
 }

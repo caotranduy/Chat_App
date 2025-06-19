@@ -15,7 +15,7 @@
     "description": "Expiration time for refresh tokens"
   },
   {
-    "name": "user..Default.profile.picture.path",
+    "name": "user.Default.profile.picture.path",
     "type": "java.lang.String",
     "description": "User Profile Picture dafault path to store in db"
   }
