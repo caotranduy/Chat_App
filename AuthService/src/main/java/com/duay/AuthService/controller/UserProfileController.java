@@ -17,10 +17,15 @@ import lombok.RequiredArgsConstructor;
 public class UserProfileController {
     private final UserProfileService service;
 
-    @GetMapping
+    @GetMapping("")
     public ResponseEntity<UserProfileResponse> getUserProfileByUserName(
-            @RequestParam String username
+            @RequestParam("username") String username
     ) {
         return ResponseEntity.ok(service.getUserProfileByUsername(username)); 
     }
+
+    // @GetMapping("")
+    // public String getMethodName(@RequestParam String param) {
+    //     return new String();
+    // }
 }
