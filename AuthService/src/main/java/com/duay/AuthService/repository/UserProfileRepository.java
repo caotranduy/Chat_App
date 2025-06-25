@@ -18,7 +18,7 @@ public interface UserProfileRepository extends JpaRepository<UserProfile, Long> 
      * @param username of the User
      * @return an Optional of UserProfile if found, otherwise empty
      */
-    @Query("SELECT p FROM UserProfile p JOIN p.user u WHERE u.username = :username")
+    @Query("SELECT p FROM UserProfile p JOIN FETCH p.user u WHERE u.username = :username")
     Optional<UserProfile> findByUserUsername(@Param("username") String username);
     
     /**

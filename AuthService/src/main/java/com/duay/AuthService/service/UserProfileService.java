@@ -80,8 +80,6 @@ public class UserProfileService {
         return toUserProfileResponse(userProfileEntity);
     }
     
-    // ... (New methods will go here) ...
-    
     /**
      * A private helper method to map the UserProfile entity to a UserProfileResponse DTO.
      */

@@ -95,6 +95,21 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
+    /**
+     * Handles our custom ResourceNotFoundException.
+     * This is triggered when a service method cannot find an entity in the database.
+     * Returns HTTP 404 Not Found.
+     */
+    @ExceptionHandler(ResourceNotFoundException.class) // <-- THIS IS THE NEW HANDLER
+    public ResponseEntity<ErrorResponse> handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest request) {
+        logger.warn("Resource not found: {}", ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.NOT_FOUND.value(),
+                ex.getMessage(), // Use the specific message from the exception for better client feedback
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+    }
     // --- Catch-All for any other unhandled exceptions ---
 
     /**
