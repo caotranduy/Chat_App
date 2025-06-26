@@ -2,14 +2,19 @@
 package com.duay.AuthService.exception;
 
 import java.util.List;
+import java.util.Set;
+//import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException; 
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -43,21 +48,7 @@ public class GlobalExceptionHandler {
 
     // --- Database and Validation Exceptions ---
 
-    /**
-     * Handles DataIntegrityViolationException.
-     * Triggered by database constraint violations (e.g., unique key violation).
-     * Returns HTTP 409 Conflict.
-     */
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex, WebRequest request) {
-        logger.warn("Data integrity violation: {}", ex.getMessage());
-        ErrorResponse errorResponse = new ErrorResponse(
-                HttpStatus.CONFLICT.value(),
-                "A resource with the same unique data already exists. Please check your input.",
-                request.getDescription(false).replace("uri=", "")
-        );
-        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
-    }
+
 
     /**
      * Handles MethodArgumentNotValidException.
@@ -78,6 +69,7 @@ public class GlobalExceptionHandler {
         errorResponse.setValidationErrors(errors);
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
+
 
     /**
      * Handles NoResourceFoundException.
@@ -110,8 +102,70 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
-    // --- Catch-All for any other unhandled exceptions ---
 
+    /**
+     * Handles HttpRequestMethodNotSupportedException.
+     * Triggered when a request is made with an HTTP method that is not supported by the endpoint
+     * (e.g., sending a POST request to a GET-only endpoint).
+     * Returns HTTP 405 METHOD NOT ALLOWED with a helpful message and an 'Allow' header.
+     */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleHttpRequestMethodNotSupported(
+            HttpRequestMethodNotSupportedException ex, WebRequest request) {
+
+        // Get the method that the client incorrectly used
+        String actualMethod = ex.getMethod();
+        
+        // Get the set of HTTP methods that are actually supported for this endpoint
+        Set<HttpMethod> supportedMethods = ex.getSupportedHttpMethods();
+
+        // Build a helpful error message string
+        String supportedMethodsString = supportedMethods.stream()
+                .map(HttpMethod::name)
+                .collect(Collectors.joining(", "));
+        
+        String errorMessage = String.format(
+                "Method '%s' is not supported for this request. Supported methods are: [%s]",
+                actualMethod,
+                supportedMethodsString
+        );
+
+        logger.warn("Invalid HTTP method used for {}: {}", request.getDescription(false).replace("uri=", ""), errorMessage);
+        
+        // Create the response body DTO
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.METHOD_NOT_ALLOWED.value(),
+                errorMessage,
+                request.getDescription(false).replace("uri=", "")
+        );
+
+        // Best Practice: A 405 response SHOULD include the 'Allow' header
+        // specifying which methods are allowed.
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAllow(supportedMethods);
+
+        // Return the response entity with the body, headers, and 405 status code
+        return new ResponseEntity<>(errorResponse, headers, HttpStatus.METHOD_NOT_ALLOWED);
+    }
+
+    
+    /**
+     * Handles DataIntegrityViolationException.
+     * Triggered by database constraint violations (e.g., unique key violation).
+     * Returns HTTP 409 Conflict.
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDataIntegrityViolation(DataIntegrityViolationException ex, WebRequest request) {
+        logger.warn("Data integrity violation: {}", ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(
+                HttpStatus.CONFLICT.value(),
+                "A resource with the same unique data already exists. Please check your input.",
+                request.getDescription(false).replace("uri=", "")
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+    
+    // --- Catch-All for any other unhandled exceptions ---
     /**
      * A catch-all handler for any other unhandled exceptions.
      * This prevents leaking stack traces to the client.

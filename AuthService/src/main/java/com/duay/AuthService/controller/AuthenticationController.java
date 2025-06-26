@@ -1,4 +1,4 @@
-package com.duay.AuthService.controller; 
+package com.duay.AuthService.controller;
 
 import java.io.IOException;
 
