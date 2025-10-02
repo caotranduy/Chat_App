@@ -1,5 +1,7 @@
 # Chat App
 
+[moved to tnew repo](https://github.com/caotranduy/chatapp)
+
 *Multi-platform chat application hoped to overthrow zalo, and replace Telegram (jk)*
 
 A petproject built in nodejs and spring by TDG 
